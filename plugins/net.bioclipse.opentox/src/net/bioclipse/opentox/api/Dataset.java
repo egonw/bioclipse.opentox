@@ -340,6 +340,12 @@ public class Dataset {
 	public static String createNewDataset(
 		String service, String sdFile, IProgressMonitor monitor)
 	throws Exception {
+		return createNewDataset(service, sdFile, "chemical/x-mdl-sdfile", monitor);
+	}
+
+	public static String createNewDataset(
+			String service, String fileContent, final String mimetype, IProgressMonitor monitor)
+		throws Exception {
 		if (monitor == null) monitor = new NullProgressMonitor();
 
 		HttpClient client = new HttpClient();
@@ -347,11 +353,11 @@ public class Dataset {
 		HttpMethodHelper.addMethodHeaders(method,
 			new HashMap<String,String>() {{
 				put("Accept", "text/uri-list");
-				put("Content-type", "chemical/x-mdl-sdfile");
+				put("Content-type", mimetype);
 			}}
 		);
 		System.out.println("Method: " + method.toString());
-		method.setRequestBody(sdFile);
+		method.setRequestBody(fileContent);
 		client.executeMethod(method);
 		int status = method.getStatusCode();
 		String dataset = "";
