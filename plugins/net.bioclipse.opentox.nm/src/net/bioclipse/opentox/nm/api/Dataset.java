@@ -35,7 +35,7 @@ public class Dataset {
 	throws Exception {
 		String nmxContent = nm.asNMX(materials);
 		return net.bioclipse.opentox.api.Dataset.createNewDataset(
-			normalizeURI(service), nmxContent, monitor
+			normalizeURI(service), nmxContent, "nanomaterial/x-cml", monitor
 		);
 	}
 
