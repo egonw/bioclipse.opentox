@@ -10,9 +10,14 @@
  ******************************************************************************/
 package net.bioclipse.opentox.nm.business;
 
+import java.util.List;
+
 import net.bioclipse.business.BioclipsePlatformManager;
 import net.bioclipse.core.business.BioclipseException;
+import net.bioclipse.core.domain.IMaterial;
+import net.bioclipse.jobs.IReturner;
 import net.bioclipse.managers.business.IBioclipseManager;
+import net.bioclipse.opentox.nm.api.Dataset;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -33,7 +38,23 @@ public class OpenToxNmManager implements IBioclipseManager {
 
     	return result;
     }
-    
+
+    public void createDataset(String service, List<IMaterial> materials, IReturner<String> returner, IProgressMonitor monitor)
+    throws BioclipseException {
+    	if (monitor == null) monitor = new NullProgressMonitor();
+    	
+    	monitor.beginTask("Creating an OpenTox API data set ...", 1);
+    	try {
+			String dataset = Dataset.createNewDataset(service, materials, monitor);
+			monitor.done();
+			returner.completeReturn( dataset ); 
+		} catch (Exception exc) {
+			throw new BioclipseException(
+				"Exception while creating dataset: " + exc.getMessage()
+			);
+		}
+    }
+
     /**
      * Gives a short one word name of the manager used as variable name when
      * scripting.

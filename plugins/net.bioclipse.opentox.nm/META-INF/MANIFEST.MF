@@ -14,7 +14,9 @@ Require-Bundle: org.eclipse.ui,
  org.springframework.osgi.aopalliance.osgi,
  net.bioclipse.rdf,
  net.bioclipse.business,
- net.bioclipse.usermanager
+ net.bioclipse.usermanager,
+ net.bioclipse.nm,
+ net.bioclipse.opentox
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Import-Package: org.apache.log4j
 Bundle-ActivationPolicy: lazy

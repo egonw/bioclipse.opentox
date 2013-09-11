@@ -10,10 +10,14 @@
  ******************************************************************************/
 package net.bioclipse.opentox.nm.business;
 
+import java.util.List;
+
 import net.bioclipse.core.PublishedClass;
 import net.bioclipse.core.PublishedMethod;
 import net.bioclipse.core.Recorded;
 import net.bioclipse.core.business.BioclipseException;
+import net.bioclipse.core.domain.IMaterial;
+import net.bioclipse.jobs.BioclipseUIJob;
 import net.bioclipse.managers.business.IBioclipseManager;
 
 @PublishedClass(
@@ -29,4 +33,11 @@ public interface IOpenToxNmManager extends IBioclipseManager {
     )
     public String downloadMaterialAsNMXFile(String materialURI) throws BioclipseException;
 	
+    @Recorded
+    @PublishedMethod(
+        methodSummary="Creates a new dataset.",
+        params="String service, List<? extends IMaterial>  materials"
+    )
+    public String createDataset(String service, List<? extends IMaterial>  materials) throws BioclipseException;
+    public void createDataset(String service, List<? extends IMaterial> materials, BioclipseUIJob<String> uiJob) throws BioclipseException;
 }
