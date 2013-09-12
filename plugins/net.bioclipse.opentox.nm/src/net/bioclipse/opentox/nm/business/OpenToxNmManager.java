@@ -10,19 +10,25 @@
  ******************************************************************************/
 package net.bioclipse.opentox.nm.business;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import net.bioclipse.business.BioclipsePlatformManager;
 import net.bioclipse.core.business.BioclipseException;
 import net.bioclipse.core.domain.IMaterial;
+import net.bioclipse.core.domain.StringMatrix;
 import net.bioclipse.jobs.IReturner;
 import net.bioclipse.managers.business.IBioclipseManager;
+import net.bioclipse.opentox.api.ModelAlgorithm;
 import net.bioclipse.opentox.nm.api.Dataset;
 
+import org.apache.log4j.Logger;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 
 public class OpenToxNmManager implements IBioclipseManager {
+
+	private static final Logger logger = Logger.getLogger(OpenToxNmManager.class);
 
     private BioclipsePlatformManager bioclipse = new BioclipsePlatformManager();
 
@@ -55,7 +61,76 @@ public class OpenToxNmManager implements IBioclipseManager {
 		}
     }
 
-    /**
+
+    public List<String> predictWithModel(String service, String model, List<IMaterial> materials, IProgressMonitor monitor)
+    throws Exception {
+    	if (service == null) throw new BioclipseException("Service is null");
+    	if (model == null) throw new BioclipseException("Model is null");
+
+    	if (monitor == null) monitor = new NullProgressMonitor();
+    	monitor.beginTask("Calculate model for dataset", materials.size());
+
+    	List<String> calcResults = new ArrayList<String>();
+    	for (IMaterial material : materials) {
+    		List<IMaterial> shortMaterialList = new ArrayList<IMaterial>();
+    		shortMaterialList.add(material);
+    		String dataset = Dataset.createNewDataset(service, shortMaterialList, monitor);
+    		if (dataset == null) {
+        		logger.error("Failed to generate a data set");
+        		return calcResults;
+        	}
+        	if (monitor.isCanceled()) return calcResults;
+    		String results = ModelAlgorithm.calculate(service, model, dataset, monitor);    		
+        	if (monitor.isCanceled()) return calcResults;
+    		StringMatrix features = net.bioclipse.opentox.api.Dataset.listPredictedFeatures(results);
+    		calcResults.addAll(removeDataType(features.getColumn("numval")));
+    		net.bioclipse.opentox.api.Dataset.deleteDataset(dataset);
+    		monitor.worked(1);
+    	}
+    	
+    	return calcResults;
+    }
+
+    public List<String> predictWithModel(String service, String model,
+    		IMaterial material, IProgressMonitor monitor)
+        			throws Exception {
+    	if (service == null) throw new BioclipseException("Service is null");
+    	if (model == null) throw new BioclipseException("Model is null");
+
+    	if (monitor == null) monitor = new NullProgressMonitor();
+    	monitor.beginTask("Calculate model for molecule", 1);
+
+    	List<String> calcResults = new ArrayList<String>();
+    	List<IMaterial> shortMaterialList = new ArrayList<IMaterial>();
+		shortMaterialList.add(material);
+    	String dataset = Dataset.createNewDataset(service, shortMaterialList, monitor);
+    	if (dataset == null) {
+    		logger.error("Failed to generate a data set");
+    		return calcResults;
+    	}
+    	if (monitor.isCanceled()) return calcResults;
+    	String results = ModelAlgorithm.calculate(service, model, dataset, monitor);
+    	if (monitor.isCanceled()) return calcResults;
+    	StringMatrix features = net.bioclipse.opentox.api.Dataset.listPredictedFeatures(results);
+    	calcResults.addAll(removeDataType(features.getColumn("numval")));
+    	net.bioclipse.opentox.api.Dataset.deleteDataset(dataset);
+    	monitor.worked(1);
+
+    	return calcResults;
+    }
+
+    private List<String> removeDataType(List<String> column) {
+		List<String> cleanedData = new ArrayList<String>(column.size());
+		for (String value : column) {
+			if (value.contains("^^")) {
+				value = value.substring(0, value.indexOf("^^"));
+			}
+			cleanedData.add(value);
+		}
+		return cleanedData;
+	}
+
+	/**
      * Gives a short one word name of the manager used as variable name when
      * scripting.
      */

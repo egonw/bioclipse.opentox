@@ -40,4 +40,20 @@ public interface IOpenToxNmManager extends IBioclipseManager {
     )
     public String createDataset(String service, List<? extends IMaterial>  materials) throws BioclipseException;
     public void createDataset(String service, List<? extends IMaterial> materials, BioclipseUIJob<String> uiJob) throws BioclipseException;
+
+    @Recorded
+    @PublishedMethod(
+        methodSummary=
+            "Predicts modeled properties for the given list of materials.",
+        params="String service, String model, List<? extends IMaterial> materials"
+    )
+    public List<String> predictWithModel(String service, String model, List<? extends IMaterial> materials);
+
+    @Recorded
+    @PublishedMethod(
+        methodSummary=
+            "Predicts modeled properties for the given material.",
+        params="String service, String model, IMaterial material"
+    )
+    public List<String> predictWithModel(String service, String model, IMaterial material) throws Exception;
 }
