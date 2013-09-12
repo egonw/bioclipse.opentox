@@ -56,4 +56,21 @@ public interface IOpenToxNmManager extends IBioclipseManager {
         params="String service, String model, IMaterial material"
     )
     public List<String> predictWithModel(String service, String model, IMaterial material) throws Exception;
+
+    @Recorded
+    @PublishedMethod(
+        methodSummary=
+            "Calculates a descriptor value for a single material.",
+        params="String service, String descriptor, IMaterial material"
+    )
+    public List<String> calculateDescriptor(String service, String descriptor, IMaterial material) throws Exception;
+
+    @Recorded
+    @PublishedMethod(
+        methodSummary=
+            "Calculates a descriptor value for a set of molecules.",
+        params="String service, String descriptor, List<? extends IMaterial> materials"
+    )
+    public List<String> calculateDescriptor(String service, String descriptor, List<? extends IMaterial> materials) throws Exception;
+
 }

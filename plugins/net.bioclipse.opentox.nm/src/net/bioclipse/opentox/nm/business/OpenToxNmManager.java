@@ -11,6 +11,7 @@
 package net.bioclipse.opentox.nm.business;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import net.bioclipse.business.BioclipsePlatformManager;
@@ -20,6 +21,7 @@ import net.bioclipse.core.domain.StringMatrix;
 import net.bioclipse.jobs.IReturner;
 import net.bioclipse.managers.business.IBioclipseManager;
 import net.bioclipse.opentox.api.ModelAlgorithm;
+import net.bioclipse.opentox.api.MolecularDescriptorAlgorithm;
 import net.bioclipse.opentox.nm.api.Dataset;
 
 import org.apache.log4j.Logger;
@@ -116,6 +118,68 @@ public class OpenToxNmManager implements IBioclipseManager {
     	net.bioclipse.opentox.api.Dataset.deleteDataset(dataset);
     	monitor.worked(1);
 
+    	return calcResults;
+    }
+
+    public List<String> calculateDescriptor(
+    		String service, String descriptor,
+    		IMaterial material, IProgressMonitor monitor)
+    throws Exception {
+    	if (monitor == null) monitor = new NullProgressMonitor();
+    	monitor.beginTask("Calculate descriptor for material", 1);
+
+    	List<String> calcResults = new ArrayList<String>();
+    	logger.debug("Creating data set");
+    	List<IMaterial> shortMaterialList = new ArrayList<IMaterial>();
+		shortMaterialList.add(material);
+    	String dataset = Dataset.createNewDataset(service, shortMaterialList, monitor);
+    	if (dataset == null) {
+    		logger.error("Failed to generate a data set");
+    		return calcResults;
+    	}
+    	logger.debug("Calculating descriptor");
+    	if (monitor.isCanceled()) return Collections.emptyList();
+    	String results = MolecularDescriptorAlgorithm.calculate(
+    		service, descriptor, dataset, monitor
+    	);
+    	if (monitor.isCanceled()) return Collections.emptyList();
+    	logger.debug("Listing features");
+    	StringMatrix features = net.bioclipse.opentox.api.Dataset.listPredictedFeatures(results);
+    	logger.debug("Pred: " + features);
+    	calcResults.addAll(removeDataType(features.getColumn("numval")));
+    	logger.debug("Deleting data set");
+    	net.bioclipse.opentox.api.Dataset.deleteDataset(dataset);
+    	monitor.worked(1);
+    	
+    	return calcResults;
+    }
+
+    public List<String> calculateDescriptor(
+    		String service, String descriptor,
+    		List<IMaterial> materials, IProgressMonitor monitor)
+    throws Exception {
+    	if (service == null) throw new BioclipseException("Service is null");
+    	if (descriptor== null) throw new BioclipseException("Descriptor is null");
+
+    	if (monitor == null) monitor = new NullProgressMonitor();
+    	monitor.beginTask("Calculate descriptor for dataset", materials.size());
+
+    	List<String> calcResults = new ArrayList<String>();
+    	for (IMaterial material : materials) {
+    		List<IMaterial> shortMaterialList = new ArrayList<IMaterial>();
+    		shortMaterialList.add(material);
+    		String dataset = Dataset.createNewDataset(service, shortMaterialList, monitor);
+    		if (monitor.isCanceled()) continue;
+    		String results = MolecularDescriptorAlgorithm.calculate(
+ 				service, descriptor, dataset, monitor
+    		);
+    		if (monitor.isCanceled()) continue;
+    		StringMatrix features = net.bioclipse.opentox.api.Dataset.listPredictedFeatures(results);
+    		calcResults.addAll(removeDataType(features.getColumn("numval")));
+    		net.bioclipse.opentox.api.Dataset.deleteDataset(dataset);
+    		monitor.worked(1);
+    	}
+    	
     	return calcResults;
     }
 
