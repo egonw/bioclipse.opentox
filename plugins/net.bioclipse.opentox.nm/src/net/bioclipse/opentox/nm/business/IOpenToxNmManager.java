@@ -11,6 +11,7 @@
 package net.bioclipse.opentox.nm.business;
 
 import java.util.List;
+import java.util.Map;
 
 import net.bioclipse.core.PublishedClass;
 import net.bioclipse.core.PublishedMethod;
@@ -56,6 +57,22 @@ public interface IOpenToxNmManager extends IBioclipseManager {
         params="String service, String model, IMaterial material"
     )
     public List<String> predictWithModel(String service, String model, IMaterial material) throws Exception;
+
+    @Recorded
+    @PublishedMethod(
+        methodSummary=
+            "Predicts modeled properties for the given molecule.",
+        params="String service, String model, List<? extends IMaterial> materials"
+    )
+    public Map<String,String> predictWithModelWithLabel(String service, String model, List<? extends IMaterial> materials) throws Exception;
+
+    @Recorded
+    @PublishedMethod(
+        methodSummary=
+            "Predicts modeled properties for the given molecule.",
+        params="String service, String model, IMaterial material"
+    )
+    public Map<String,String> predictWithModelWithLabel(String service, String model, IMaterial material);
 
     @Recorded
     @PublishedMethod(

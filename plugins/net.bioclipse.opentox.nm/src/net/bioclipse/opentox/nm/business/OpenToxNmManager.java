@@ -12,7 +12,9 @@ package net.bioclipse.opentox.nm.business;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import net.bioclipse.business.BioclipsePlatformManager;
 import net.bioclipse.core.business.BioclipseException;
@@ -120,6 +122,77 @@ public class OpenToxNmManager implements IBioclipseManager {
 
     	return calcResults;
     }
+
+    public Map<String,String> predictWithModelWithLabel(String service, String model,
+    		List<IMaterial> materials, IProgressMonitor monitor)
+    				throws Exception {
+    	if (service == null) throw new BioclipseException("Service is null");
+    	if (model == null) throw new BioclipseException("Model is null");
+
+    	if (monitor == null) monitor = new NullProgressMonitor();
+    	monitor.beginTask("Calculate model for dataset", materials.size());
+
+    	Map<String,String> calcResults = new HashMap<String, String>();
+    	for (IMaterial material : materials) {
+        	List<IMaterial> shortMaterialList = new ArrayList<IMaterial>();
+    		shortMaterialList.add(material);
+        	String dataset = Dataset.createNewDataset(service, shortMaterialList, monitor);
+    		if (dataset == null) {
+    			logger.error("Failed to generate a data set");
+    			return calcResults;
+    		}
+    		if (monitor.isCanceled()) return calcResults;
+    		String results = ModelAlgorithm.calculate(service, model, dataset, monitor);
+    		if (monitor.isCanceled()) return calcResults;
+    		StringMatrix features = net.bioclipse.opentox.api.Dataset.listPredictedFeatures(results);
+    		List<String> fcol = removeDataType(features.getColumn("numval"));
+    		List<String> lcol = features.getColumn("desc");
+    		for (int i=0; i<fcol.size(); i++){
+    			calcResults.put(lcol.get(i), fcol.get(i));
+    		}
+
+    		net.bioclipse.opentox.api.Dataset.deleteDataset(dataset);
+    		monitor.worked(1);
+    	}
+
+    	return calcResults;
+    }
+
+    public Map<String,String> predictWithModelWithLabel(String service, String model,
+    		IMaterial material, IProgressMonitor monitor)
+    				throws Exception {
+    	if (service == null) throw new BioclipseException("Service is null");
+    	if (model == null) throw new BioclipseException("Model is null");
+
+    	if (monitor == null) monitor = new NullProgressMonitor();
+    	monitor.beginTask("Calculate model for molecule", 1);
+
+    	Map<String,String> calcResults = new HashMap<String, String>();    	
+    	List<IMaterial> shortMaterialList = new ArrayList<IMaterial>();
+		shortMaterialList.add(material);
+    	String dataset = Dataset.createNewDataset(service, shortMaterialList, monitor);
+    	if (dataset == null) {
+    		logger.error("Failed to generate a data set");
+    		return calcResults;
+    	}
+    	if (monitor.isCanceled()) return calcResults;
+    	String results = ModelAlgorithm.calculate(service, model, dataset, monitor);
+    	if (monitor.isCanceled()) return calcResults;
+    	StringMatrix features = net.bioclipse.opentox.api.Dataset.listPredictedFeatures(results);
+    	if (features.getRowCount() > 0) {
+    		List<String> fcol = removeDataType(features.getColumn("numval"));
+    		List<String> lcol = features.getColumn("label");
+    		for (int i=0; i<lcol.size(); i++){
+    			calcResults.put(lcol.get(i), fcol.get(i));
+    		}
+    	}
+
+    	net.bioclipse.opentox.api.Dataset.deleteDataset(dataset);
+    	monitor.worked(1);
+
+    	return calcResults;
+    }
+
 
     public List<String> calculateDescriptor(
     		String service, String descriptor,
