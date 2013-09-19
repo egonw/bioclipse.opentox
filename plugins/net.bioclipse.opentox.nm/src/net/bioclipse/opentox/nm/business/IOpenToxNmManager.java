@@ -45,6 +45,14 @@ public interface IOpenToxNmManager extends IBioclipseManager {
     @Recorded
     @PublishedMethod(
         methodSummary=
+            "Lists the predictive models for materials available defined by the given server.",
+        params="String ontologyServer"
+    )
+    public List<String> listModels(String ontologyServer) throws BioclipseException;
+
+    @Recorded
+    @PublishedMethod(
+        methodSummary=
             "Predicts modeled properties for the given list of materials.",
         params="String service, String model, List<? extends IMaterial> materials"
     )

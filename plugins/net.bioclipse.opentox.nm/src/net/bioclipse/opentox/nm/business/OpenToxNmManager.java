@@ -19,6 +19,7 @@ import java.util.Map;
 import net.bioclipse.business.BioclipsePlatformManager;
 import net.bioclipse.core.business.BioclipseException;
 import net.bioclipse.core.domain.IMaterial;
+import net.bioclipse.core.domain.IStringMatrix;
 import net.bioclipse.core.domain.StringMatrix;
 import net.bioclipse.jobs.IReturner;
 import net.bioclipse.managers.business.IBioclipseManager;
@@ -267,7 +268,16 @@ public class OpenToxNmManager implements IBioclipseManager {
 		return cleanedData;
 	}
 
-	/**
+    public List<String> listModels(String ontologyServer, IProgressMonitor monitor)
+    throws BioclipseException {
+        if (monitor == null) monitor = new NullProgressMonitor();
+        List<String> models = new ArrayList<String>();
+        models.add("http://apps.ideaconsult.net:8080/bioclipse/model/22");
+        monitor.done();
+        return models;
+    }
+
+    /**
      * Gives a short one word name of the manager used as variable name when
      * scripting.
      */
