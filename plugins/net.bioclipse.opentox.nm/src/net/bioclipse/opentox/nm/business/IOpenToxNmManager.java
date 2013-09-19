@@ -13,6 +13,8 @@ package net.bioclipse.opentox.nm.business;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+
 import net.bioclipse.core.PublishedClass;
 import net.bioclipse.core.PublishedMethod;
 import net.bioclipse.core.Recorded;
@@ -82,6 +84,7 @@ public interface IOpenToxNmManager extends IBioclipseManager {
         params="String service, String model, IMaterial material"
     )
     public Map<String,String> predictWithModelWithLabel(String service, String model, IMaterial material);
+    public Map<String,String> predictWithModelWithLabel(String service, String model, IMaterial material, IProgressMonitor monitor);
 
     @Recorded
     @PublishedMethod(

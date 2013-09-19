@@ -14,7 +14,8 @@ Require-Bundle: org.eclipse.ui,
  net.bioclipse.cdk.business,
  org.openscience.cdk.interfaces,
  org.eclipse.help,
- net.bioclipse.opentox
+ net.bioclipse.opentox,
+ net.bioclipse.opentox.nm
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy
 Import-Package: org.apache.log4j

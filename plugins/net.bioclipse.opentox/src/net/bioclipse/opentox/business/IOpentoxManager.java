@@ -13,6 +13,8 @@ package net.bioclipse.opentox.business;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+
 import net.bioclipse.core.PublishedClass;
 import net.bioclipse.core.PublishedMethod;
 import net.bioclipse.core.Recorded;
@@ -122,6 +124,7 @@ public interface IOpentoxManager extends IBioclipseManager {
         params="String service, String model, List<? extends IMolecule> molecules"
     )
     public StringMatrix predictWithModelWithLabel(String service, String model, List<? extends IMolecule> molecules) throws Exception;
+    public Map<String,String> predictWithModelWithLabel(String service, String model, List<? extends IMolecule> molecules, IProgressMonitor monitor) throws Exception;
 
     @Recorded
     @PublishedMethod(
@@ -130,6 +133,7 @@ public interface IOpentoxManager extends IBioclipseManager {
         params="String service, String model, IMolecule molecule"
     )
     public Map<String,String> predictWithModelWithLabel(String service, String model, IMolecule molecule);
+    public Map<String,String> predictWithModelWithLabel(String service, String model, IMolecule molecule, IProgressMonitor monitor);
 
 
     @Recorded

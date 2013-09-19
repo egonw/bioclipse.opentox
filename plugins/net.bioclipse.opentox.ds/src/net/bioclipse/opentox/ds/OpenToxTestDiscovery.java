@@ -5,6 +5,9 @@ import java.util.List;
 import java.util.Map;
 
 import net.bioclipse.core.business.BioclipseException;
+import net.bioclipse.core.domain.IBioObject;
+import net.bioclipse.core.domain.IMaterial;
+import net.bioclipse.core.domain.IMolecule;
 import net.bioclipse.ds.Activator;
 import net.bioclipse.ds.business.DSBusinessModel;
 import net.bioclipse.ds.business.IDSManager;
@@ -15,6 +18,7 @@ import net.bioclipse.ds.model.ITestDiscovery;
 import net.bioclipse.opentox.OpenToxService;
 import net.bioclipse.opentox.ServiceReader;
 import net.bioclipse.opentox.business.IOpentoxManager;
+import net.bioclipse.opentox.nm.business.IOpenToxNmManager;
 
 import org.apache.log4j.Logger;
 
@@ -40,9 +44,13 @@ public class OpenToxTestDiscovery implements ITestDiscovery {
 
 		List<IDSTest> discoveredTests=new ArrayList<IDSTest>();
 		
-		//We need OpenToxManager to dicover models
+		//We need OpenToxManager to discover models
 		IOpentoxManager opentox = net.bioclipse.opentox.Activator
 										  .getDefault().getJavaOpentoxManager();
+
+		//We need OpenToxManager to discover NM models
+		IOpenToxNmManager opentoxnm = net.bioclipse.opentox.nm.Activator
+										  .getDefault().getJavaOpenToxNmManager();
 
 		//Get the registered services
 		List<OpenToxService> OTservices = ServiceReader.readServicesFromPreferences();
@@ -54,28 +62,54 @@ public class OpenToxTestDiscovery implements ITestDiscovery {
 
 			//Discover models for this service
 			if (service.getServiceSPARQL()!=null && service.getServiceSPARQL().length()>3){
-				List<String> models = opentox.listModels(service.getServiceSPARQL());
-				if (models!=null){
-					logger.debug("Discovered " + models.size() + 
-							" models for service: " + service);
+				List<String> otmodels = opentox.listModels(service.getServiceSPARQL());
+				List<String> nmmodels = opentoxnm.listModels(service.getServiceSPARQL());
+//				if (otmodels!=null){
+//					logger.debug("Discovered " + otmodels.size() + 
+//							" models for service: " + service);
+//					
+//					for (String model : otmodels){
+//						//Add this model as a test if basic criteria are met
+//						Map<String,String> props = opentox.getModelInfo(service.getServiceSPARQL(), model);
+//						String title = props.get("http://purl.org/dc/elements/1.1/title");
+//						if (title.endsWith("^^http://www.w3.org/2001/XMLSchema#string")) {
+//							title = title.substring(0, title.indexOf("^^"));
+//						}
+//						IDSTest test = createOpenToxTest(model, title, IMolecule.class);
+//						discoveredTests.add(test);
+//						
+//						logger.debug("Added OpenTox model as DSTest: " + test );
+//
+//					}
+//					
+//				}else{
+//					logger.debug("No models discovered for service: " + service);
+//				}
+
+				//Work on NM models
+				if (nmmodels!=null){
+					logger.debug("Discovered " + nmmodels.size() + 
+							" NM models for service: " + service);
 					
-					for (String model : models){
+					for (String model : nmmodels){
 						//Add this model as a test if basic criteria are met
 						Map<String,String> props = opentox.getModelInfo(service.getServiceSPARQL(), model);
-						String title = props.get("http://purl.org/dc/elements/1.1/title");
-						if (title.endsWith("^^http://www.w3.org/2001/XMLSchema#string")) {
-							title = title.substring(0, title.indexOf("^^"));
-						}
-						IDSTest test = createOpenToxTest(model, title);
+//						String title = props.get("http://purl.org/dc/elements/1.1/title");
+//						if (title.endsWith("^^http://www.w3.org/2001/XMLSchema#string")) {
+//							title = title.substring(0, title.indexOf("^^"));
+//						}
+						String title="wee";
+						IDSTest test = createOpenToxTest(model, title, IMaterial.class);
 						discoveredTests.add(test);
 						
-						logger.debug("Added OpenTox model as DSTest: " + test );
+						logger.debug("Added OpenToxNM model as DSTest: " + test );
 
 					}
 					
 				}else{
 					logger.debug("No models discovered for service: " + service);
 				}
+			
 			}
 			
 		}
@@ -83,11 +117,11 @@ public class OpenToxTestDiscovery implements ITestDiscovery {
 		return discoveredTests;
 	}
 
-	private IDSTest createOpenToxTest(String model, String title) throws BioclipseException {
+	private IDSTest createOpenToxTest(String model, String title, Class<? extends IBioObject> worksOn) throws BioclipseException {
 
 		
 		//First, hardcoded one to demonstrate functionality
-		IDSTest test= new OpenToxModel(model);
+		IDSTest test= new OpenToxModel(model, worksOn);
 		
 		if (title != null && title.length() > 0) {
 			test.setName(title);

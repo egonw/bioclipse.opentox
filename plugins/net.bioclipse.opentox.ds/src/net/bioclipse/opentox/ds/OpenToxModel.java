@@ -6,12 +6,17 @@ import java.util.List;
 import java.util.Map;
 
 import net.bioclipse.cdk.domain.ICDKMolecule;
+import net.bioclipse.core.domain.IBioObject;
+import net.bioclipse.core.domain.IMaterial;
+import net.bioclipse.ds.model.AbstractDSMolModel;
 import net.bioclipse.ds.model.AbstractDSTest;
 import net.bioclipse.ds.model.DSException;
 import net.bioclipse.ds.model.ITestResult;
+import net.bioclipse.opentox.Activator;
 import net.bioclipse.opentox.OpenToxService;
 import net.bioclipse.opentox.ServiceReader;
-import net.bioclipse.opentox.business.OpentoxManager;
+import net.bioclipse.opentox.business.IOpentoxManager;
+import net.bioclipse.opentox.nm.business.IOpenToxNmManager;
 
 import org.apache.log4j.Logger;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -22,25 +27,41 @@ import org.eclipse.core.runtime.IProgressMonitor;
  * @author ola
  *
  */
-public class OpenToxModel extends AbstractDSTest {
+public class OpenToxModel extends AbstractDSMolModel {
 
     private static final Logger logger = Logger.getLogger(OpenToxModel.class);
 
-	OpentoxManager opentox;
+	IOpentoxManager opentox;
+	IOpenToxNmManager opentoxnm;
 	private String model;
+	private Class<? extends IBioObject> worksOn;
 	
-	public OpenToxModel(String model) {
+	public OpenToxModel(String model, Class<? extends IBioObject> worksOn) {
 		this.model=model;
+		this.worksOn=worksOn;
 	}
 
 	@Override
 	public void initialize(IProgressMonitor monitor) throws DSException {
-		opentox = new OpentoxManager();
+		opentox = Activator.getDefault().getJavaOpentoxManager();
+		opentoxnm = net.bioclipse.opentox.nm.Activator.getDefault().getJavaOpenToxNmManager();
 	}
 
 	@Override
-	protected List<? extends ITestResult> doRunTest(ICDKMolecule cdkmol,
+	protected List<? extends ITestResult> doRunTest(IBioObject input,
 			IProgressMonitor monitor) {
+		
+//		if (!(input.getClass().equals(worksOn)))
+//			return returnError("Expected input of type " + worksOn.getName(), "");
+		
+		ICDKMolecule cdkmol = null;
+		IMaterial material = null;
+		if (input instanceof ICDKMolecule)
+			cdkmol = (ICDKMolecule) input;
+		else if (input instanceof IMaterial)
+			material = (IMaterial) input;
+		else 
+			returnError("Input neither mol nor material", "");
 
 		//Use the currently selected OpenTox service
 	    List<OpenToxService> otservices = ServiceReader.readServicesFromPreferences();
@@ -67,12 +88,15 @@ public class OpenToxModel extends AbstractDSTest {
 		Map<String, String> OTres = null;
 		//retry 3 times, looks like a server issue
 		try{
-			OTres = opentox.predictWithModelWithLabel(service, model, cdkmol, monitor);
+			if (cdkmol != null)
+				OTres = opentox.predictWithModelWithLabel(service, model, cdkmol, monitor);
+			else if (material != null)
+				OTres = opentoxnm.predictWithModelWithLabel(service, model, material, monitor);
 
-		} catch (GeneralSecurityException e) {
-			logger.error("  == Opentox model without access: " + model);
-			String errorMessage = "No access: " + e.getMessage().toLowerCase();
-			return returnError(errorMessage, errorMessage);
+//		} catch (GeneralSecurityException e) {
+//			logger.error("  == Opentox model without access: " + model);
+//			String errorMessage = "No access: " + e.getMessage().toLowerCase();
+//			return returnError(errorMessage, errorMessage);
 		} catch (UnsupportedOperationException e) {
 			logger.error("  == Opentox model unavailable: " + model);
 			String errorMessage = "Unavailable service: " + e.getMessage().toLowerCase();
