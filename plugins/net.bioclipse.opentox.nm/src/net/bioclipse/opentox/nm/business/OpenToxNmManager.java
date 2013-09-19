@@ -19,7 +19,6 @@ import java.util.Map;
 import net.bioclipse.business.BioclipsePlatformManager;
 import net.bioclipse.core.business.BioclipseException;
 import net.bioclipse.core.domain.IMaterial;
-import net.bioclipse.core.domain.IStringMatrix;
 import net.bioclipse.core.domain.StringMatrix;
 import net.bioclipse.jobs.IReturner;
 import net.bioclipse.managers.business.IBioclipseManager;
@@ -124,7 +123,7 @@ public class OpenToxNmManager implements IBioclipseManager {
     	return calcResults;
     }
 
-    public Map<String,String> predictWithModelWithLabel(String service, String model,
+    public StringMatrix predictWithModelWithLabel(String service, String model,
     		List<IMaterial> materials, IProgressMonitor monitor)
     				throws Exception {
     	if (service == null) throw new BioclipseException("Service is null");
@@ -133,8 +132,11 @@ public class OpenToxNmManager implements IBioclipseManager {
     	if (monitor == null) monitor = new NullProgressMonitor();
     	monitor.beginTask("Calculate model for dataset", materials.size());
 
-    	Map<String,String> calcResults = new HashMap<String, String>();
+    	StringMatrix calcResults = new StringMatrix();
+    	calcResults.setSize(materials.size(), 0);
+    	int matCount = 0;
     	for (IMaterial material : materials) {
+    		matCount++;
         	List<IMaterial> shortMaterialList = new ArrayList<IMaterial>();
     		shortMaterialList.add(material);
         	String dataset = Dataset.createNewDataset(service, shortMaterialList, monitor);
@@ -147,9 +149,18 @@ public class OpenToxNmManager implements IBioclipseManager {
     		if (monitor.isCanceled()) return calcResults;
     		StringMatrix features = net.bioclipse.opentox.api.Dataset.listPredictedFeatures(results);
     		List<String> fcol = removeDataType(features.getColumn("numval"));
-    		List<String> lcol = features.getColumn("desc");
+    		List<String> lcol = features.getColumn("label");
     		for (int i=0; i<fcol.size(); i++){
-    			calcResults.put(lcol.get(i), fcol.get(i));
+    			String colName = lcol.get(i);
+        		// ensure we have a matching column
+    			int colCount = -1;
+            	if (calcResults.hasColumn(colName)) {
+            		colCount = calcResults.getColumnNumber(colName);
+            	} else {
+            		colCount = calcResults.getColumnCount() + 1;
+            		calcResults.setColumnName(colCount, colName);
+            	}
+    			calcResults.set(matCount, colCount, fcol.get(i));
     		}
 
     		net.bioclipse.opentox.api.Dataset.deleteDataset(dataset);

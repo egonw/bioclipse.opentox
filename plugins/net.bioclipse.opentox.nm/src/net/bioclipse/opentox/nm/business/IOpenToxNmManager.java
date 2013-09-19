@@ -18,6 +18,7 @@ import net.bioclipse.core.PublishedMethod;
 import net.bioclipse.core.Recorded;
 import net.bioclipse.core.business.BioclipseException;
 import net.bioclipse.core.domain.IMaterial;
+import net.bioclipse.core.domain.StringMatrix;
 import net.bioclipse.jobs.BioclipseUIJob;
 import net.bioclipse.managers.business.IBioclipseManager;
 
@@ -72,7 +73,7 @@ public interface IOpenToxNmManager extends IBioclipseManager {
             "Predicts modeled properties for the given molecule.",
         params="String service, String model, List<? extends IMaterial> materials"
     )
-    public Map<String,String> predictWithModelWithLabel(String service, String model, List<? extends IMaterial> materials) throws Exception;
+    public StringMatrix predictWithModelWithLabel(String service, String model, List<? extends IMaterial> materials) throws Exception;
 
     @Recorded
     @PublishedMethod(
