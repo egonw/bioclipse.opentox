@@ -98,7 +98,7 @@ public class OpenToxTestDiscovery implements ITestDiscovery {
 //						if (title.endsWith("^^http://www.w3.org/2001/XMLSchema#string")) {
 //							title = title.substring(0, title.indexOf("^^"));
 //						}
-						String title="wee";
+						String title="Burello Conductivity Band Energy";
 						IDSTest test = createOpenToxTest(model, title, IMaterial.class);
 						discoveredTests.add(test);
 						
